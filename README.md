@@ -1,6 +1,9 @@
 # ICC-UP
 Manage icc project
 
+![image](https://github.com/DDadeA/ICC-UP/assets/44233195/92b350d8-0a1e-415b-bd4a-883d54df2b6d)
+(First Contentful Paint, Sample size 31)
+
 ## Manual
 1. Run `ICC_UP.exe`
 2. Select your `project.json` to manage.
