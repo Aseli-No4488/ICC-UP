@@ -35,7 +35,7 @@ def change_base64_to_img(data, format:str, path:str):
         with open(f'{path}/img/{format}_{i}.{format}', 'wb') as f: f.write(imgdata)
         
         ## Replace base64 in json
-        data = data.replace(base64img[:-1], f'img/{i}.{format}')
+        data = data.replace(base64img[:-1], f'img/{format}_{i}.{format}')
     
     return data
 
