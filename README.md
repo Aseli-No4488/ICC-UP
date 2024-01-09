@@ -2,7 +2,7 @@
 Manage icc project
 
 # Download
- - [Windows](https://github.com/DDadeA/ICC-UP/releases/tag/dev)
+ - [https://github.com/DDadeA/ICC-UP/releases](https://github.com/DDadeA/ICC-UP/releases)
 
 # Features
  - Extract images from `project.json` for lazy loading.
