@@ -42,7 +42,7 @@ def change_base64_to_img(data, format:str, path:str):
 
 if __name__ == '__main__':
     print("="*30)
-    print("ICC UP V1.1")
+    print("ICC UP V1.2")
     print("="*30)
     
     # Get project.json
@@ -76,6 +76,7 @@ if __name__ == '__main__':
     data = change_base64_to_img(data, 'jpeg', main_path)
     data = change_base64_to_img(data, 'png', main_path)
     data = change_base64_to_img(data, 'webp', main_path)
+    data = change_base64_to_img(data, 'gif', main_path)
 
     # -- No use - Default is converting -- #
     # # Apply modification to project.json
