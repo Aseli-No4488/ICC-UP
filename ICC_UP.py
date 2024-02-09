@@ -1,5 +1,5 @@
 import base64, re, os
-from tqdm import tqdm
+from alive_progress import alive_bar
 
 from pathlib import Path
 from PIL import Image
@@ -27,15 +27,20 @@ def change_base64_to_img(data, format:str, path:str):
     l = re.findall(f'data:image\/{format};base64,' + r"[^\",]+\"", data)
     print(f'Find {len(l)} images! - format: {format}')
     
-    for i, base64img in enumerate(tqdm(l, desc=f'Converting {format} to img...', ncols=100, ascii=True)):
-        ## Convert base64 to binary
-        imgdata = base64.b64decode(base64img[19+len(format):-1])
-        
-        ## Save image
-        with open(f'{path}/img/{format}_{i}.{format}', 'wb') as f: f.write(imgdata)
-        
-        ## Replace base64 in json
-        data = data.replace(base64img[:-1], f'img/{format}_{i}.{format}')
+    
+    with alive_bar(len(l), title=f'Converting {format} to img...', bar='classic') as bar:
+        for i, base64img in enumerate(l):
+            ## Convert base64 to binary
+            imgdata = base64.b64decode(base64img[19+len(format):-1])
+            
+            ## Save image
+            with open(f'{path}/img/{format}_{i}.{format}', 'wb') as f: f.write(imgdata)
+            
+            ## Replace base64 in json
+            data = data.replace(base64img[:-1], f'img/{format}_{i}.{format}')
+            
+            # Update progress bar
+            bar()
     
     return data
 
@@ -88,11 +93,11 @@ if __name__ == '__main__':
     file_list = [file_path+'\\'+i for i in os.listdir(file_path) if not i.endswith('.webp')]
     file_list = [Path(i) for i in file_list]
 
-    # Pyinstaller cannot use multiprocessing?    
-    # with Pool(8) as p:
-    #     p.map(convert_to, file_list)
-    for file in tqdm(file_list, desc='Converting to webp...', ncols=100, ascii=True): 
-        convert_to(file)
+    ## Convert to webp
+    with alive_bar(len(file_list), title='Converting to webp...', bar='classic') as bar:
+        for file in file_list:
+            convert_to(file)
+            bar()
         
     ## Apply modification
     with open(f'{main_path}/project.json', 'w', encoding='utf8') as f:
@@ -105,9 +110,17 @@ if __name__ == '__main__':
             .replace('\n', '')
         )
     
-    for file in tqdm(file_list, desc='Deleting old image', ncols=100, ascii=True):
-        if ('jpg' in str(file)) or ('jpeg' in str(file)) or ('png' in str(file)):
-            os.remove(file)
+    ## Delete old image
+    with alive_bar(len(file_list), title='Deleting old image...', bar='classic') as bar:
+        for file in file_list:
+            
+            # Delete old image
+            if ('jpg' in str(file)) or ('jpeg' in str(file)) or ('png' in str(file)):
+                os.remove(file)
+                
+            # Update progress bar
+            bar()
+        
     
     messagebox.showwarning("", "Done!")
     exit()
