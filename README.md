@@ -1,4 +1,4 @@
-# ICC-UP 1.3
+# ICC-UP 2.0 offline
 Manage ICC(Interactive CYOA Creator) project
 
 ## Manual
