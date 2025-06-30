@@ -32,9 +32,10 @@ def save_base64_image(b64_string: str, folder_path: str) -> str:
         b64_data = b64_string
         mime = None
 
-    ext = mimetypes.guess_extension(mime) if mime else None
-    if ext == ".jpe": ext = ".jpg"
-    ext = ext or ".webp"
+    # ext = mimetypes.guess_extension(mime) if mime else None
+    # if ext == ".jpe": ext = ".jpg"
+    # ext = ext or ".webp"
+    ext = ".webp"  # Default to webp for consistency
 
     filename = get_hash(b64_data) + ext
     out_path = Path(folder_path) / filename
