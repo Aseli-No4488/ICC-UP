@@ -1,6 +1,6 @@
 import base64
 import hashlib
-import mimetypes
+# import mimetypes
 import json
 from pathlib import Path
 from typing import Any, Callable, Collection
@@ -127,6 +127,7 @@ class App(ttk.Frame):
         cf = ttk.LabelFrame(self, text='Neocities', padding=10); cf.pack(fill='x', pady=5)
         ttk.Label(cf, text='ID(절대경로 사용 시 필요):').pack(side='left')
         self.id_var = tk.StringVar(); ttk.Entry(cf, textvariable=self.id_var, width=15).pack(side='left', padx=5)
+        
         # ttk.Label(cf, text='Password').pack(side='left', padx=(10,0))
         # self.pw_var = tk.StringVar(); ttk.Entry(cf, textvariable=self.pw_var, show='*', width=15).pack(side='left', padx=5)
 
@@ -160,6 +161,15 @@ class App(ttk.Frame):
         lf = ttk.LabelFrame(self, text='Log', padding=10); lf.pack(fill='both', expand=True, pady=5)
         self.log = ScrolledText(lf, wrap='word', state='disabled', height=12)
         self.log.pack(fill='both', expand=True)
+        
+        
+        
+        # OnChange event to update image folder message
+        self.id_var.trace_add("write", self.update_img_folder_message)
+        self.img_folder_var.trace_add("write", self.update_img_folder_message)
+        self.opt_json_abspath.trace_add("write", self.update_img_folder_message)
+        
+
 
     def load_state(self):
         # Restore saved state
@@ -169,8 +179,25 @@ class App(ttk.Frame):
         self.img_folder_var.set(cfg.get('img_folder', 'iccup2'))
         last = cfg.get('last_file', '')
         self.file_label.config(text=last if last else "고르라니까?")
+        
+        self.update_img_folder_message()
 
-        self.img_folder_message.set(neocities_abs_path(self.id_var.get(), self.img_folder_var.get() or 'iccup2') + '/xxx.webp')
+    # Update text when ID is changed (real-time)
+    def update_img_folder_message(self, *args):
+        img_folder = self.img_folder_var.get().strip() or 'iccup2'
+        id_value = self.id_var.get().strip()
+        
+        use_abs_path = self.opt_json_abspath.get()
+
+        if not use_abs_path:
+            self.img_folder_message.set(f"json 대체값: {img_folder}/xxx.webp")
+            return
+        
+        if id_value:
+            self.img_folder_message.set("json 대체값: " + neocities_abs_path(id_value, img_folder) + '/xxx.webp')
+        else:
+            # If no ID is set, show a warning
+            self.img_folder_message.set("경고: 절대경로 사용 시 ID가 필요합니다.")
 
     def save_state(self):
         # Save current state
@@ -264,6 +291,12 @@ class App(ttk.Frame):
         self.log_message("수정된 JSON 저장 완료.")
         self.message.set("Done.")
         self.save_state()
+        
+        send_parse_event(
+            image_count=n,
+            total_image_size_MB=out_folder.stat().st_size / (1024 * 1024),  # Convert bytes to MB
+            neocities_id=self_idvar
+        )
 
     def log_message(self, msg: str):
         self.log.config(state='normal')
@@ -274,6 +307,65 @@ class App(ttk.Frame):
     def on_close(self):
         self.save_state()
         self.root.destroy()
+
+### About the GA(logging) ###
+import uuid
+import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # .env 파일에서 환경 변수 로드
+MEASUREMENT_ID = os.getenv("GA_MEASUREMENT_ID") 
+API_SECRET     = os.getenv("GA_API_SECRET")
+
+def send_event(name: str, params: dict | None = None, client_id: str | None = None):
+    endpoint = (
+        f"https://www.google-analytics.com/mp/collect"
+        f"?measurement_id={MEASUREMENT_ID}&api_secret={API_SECRET}"
+    )
+    payload = {
+        "client_id": client_id or str(uuid.uuid4()),
+        "events": [
+            {
+                "name": name,
+                "params": params or {
+                    "engagement_time_msec": "1",
+                },
+            }
+        ],
+    }
+    try:
+        debug_resp = requests.post(endpoint.replace("/mp/", "/debug/mp/"), json=payload, timeout=3)
+        live_resp = requests.post(endpoint, json=payload, timeout=3)
+        live_resp.raise_for_status()
+        return live_resp.status_code
+    except:
+        # Looks like offline, so just ignore the error
+        print(f"Failed to send event {name}. This is expected in offline mode.")
+        return 200
+
+
+
+def send_parse_event(image_count:int, total_image_size_MB:float, neocities_id:str = ""):
+    try:
+        user_ip = requests.get('https://api.ipify.org').text
+        ip_hash = hashlib.sha256(user_ip.encode('utf-8')).hexdigest()[:16]  # Shorten for privacy
+        
+    except requests.RequestException:
+        print("Failed to get public IP address. Using 'unknown'.")
+        ip_hash = "unknown"
+    
+    return send_event(
+        name="main",
+        client_id=ip_hash,  # Use hashed IP as client_id for privacy
+        params={
+            "method": "cli",
+            "non_personalized_ads": True,
+            "image_count": image_count,
+            "total_image_size_MB": total_image_size_MB,
+            "neocities_id": neocities_id,
+        },
+    )
 
 if __name__ == '__main__':
     root = tk.Tk()
