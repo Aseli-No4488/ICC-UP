@@ -87,7 +87,7 @@ class App(ttk.Frame):
     def __init__(self, root):
         super().__init__(root, padding=20)
         self.root = root
-        self.root.title("ICC-UP Offline")
+        self.root.title("ICC-UP 2.0 Offline")
         self.config = load_config()
         self.setup_style()
         self.build_ui()
