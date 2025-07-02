@@ -42,8 +42,7 @@ def save_base64_image(b64_string: str, folder_path: str) -> str:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     img_bytes = base64.b64decode(b64_data)
     out_path.write_bytes(img_bytes)
-    rel_path = out_path.relative_to(Path(folder_path).parent)
-    return str(rel_path)
+    return str(filename)
 
 
 def apply_to_keys(obj: Any,
@@ -263,10 +262,15 @@ class App(ttk.Frame):
             n += 1
             self.log_message(f"Img {n}: {x[:10]}...")
 
+
+            filename = save_base64_image(x, str(out_folder))
+            
+            # file path is img_folder/filename
+            filepath = str(Path(img_folder) / filename)
             if self_optjsonabspath:
                 # Use absolute path
-                return neocities_abs_path(self_idvar, save_base64_image(x, str(out_folder)))
-            return save_base64_image(x, str(out_folder))
+                return neocities_abs_path(self_idvar, filepath)
+            return filepath
 
         apply_to_keys(data, k, condition=lambda v: isinstance(v, str) and v.startswith('data:'))
         self.log_message(f"{n} 개의 이미지를 추출했습니다.")
