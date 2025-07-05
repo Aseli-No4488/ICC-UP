@@ -9,6 +9,8 @@ from tkinter import ttk, filedialog
 from tkinter.scrolledtext import ScrolledText
 from time import time
 
+
+
 # Constants
 KEY_CANDIDATES = {"image", "bgImage", "backgroundImage", "rowBackgroundImage"}
 CONFIG_FILE = "config.json"
@@ -378,5 +380,13 @@ def send_parse_event(image_count:int, total_image_size_MB:float, neocities_id:st
 if __name__ == '__main__':
     root = tk.Tk()
     root.geometry('680x620')
+    
+    # Set the icon if available
+    icon_path = Path(__file__).parent / 'ico.ico'
+    if icon_path.exists():
+        root.iconbitmap(icon_path)
+    else:
+        print(f"Icon file not found: {icon_path}. Using default icon.")
+
     App(root)
     root.mainloop()
