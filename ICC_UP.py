@@ -86,7 +86,7 @@ class App(ttk.Frame):
     def __init__(self, root):
         super().__init__(root, padding=20)
         self.root = root
-        self.root.title("ICC-UP 2.01 Offline")
+        self.root.title("ICC-UP 2.02 Offline")
         self.config = load_config()
         self.setup_style()
         self.build_ui()
@@ -238,7 +238,7 @@ class App(ttk.Frame):
             self.message.set("json 파일을 선택하세요.")
             return
         self.message.set("Processing...")
-        self.log_message("Process start...")
+        self.log_message("Process start... 시간이 좀 걸릴 수 있습니다.")
         try:
             data = json.load(open(fp, 'r', encoding='utf-8'))
         except Exception as e:
@@ -260,7 +260,7 @@ class App(ttk.Frame):
         def k(x: str) -> str:
             nonlocal n
             n += 1
-            self.log_message(f"Img {n}: {x[:10]}...")
+            self.log_message(f"Img {n}: {x[10:20]}...")
 
 
             filename = save_base64_image(x, str(out_folder))
@@ -317,10 +317,13 @@ import uuid
 import requests
 import os
 from dotenv import load_dotenv
+import sys
 
-load_dotenv()  # .env 파일에서 환경 변수 로드
+load_dotenv(os.path.join(getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__))), '.env'))
+
 MEASUREMENT_ID = os.getenv("GA_MEASUREMENT_ID") 
 API_SECRET     = os.getenv("GA_API_SECRET")
+print(len(MEASUREMENT_ID)==12, len(API_SECRET)==22)
 
 def send_event(name: str, params: dict | None = None, client_id: str | None = None):
     endpoint = (
@@ -340,6 +343,7 @@ def send_event(name: str, params: dict | None = None, client_id: str | None = No
     }
     try:
         debug_resp = requests.post(endpoint.replace("/mp/", "/debug/mp/"), json=payload, timeout=3)
+        
         live_resp = requests.post(endpoint, json=payload, timeout=3)
         live_resp.raise_for_status()
         return live_resp.status_code
